@@ -3,7 +3,18 @@ import React, { useState } from "react";
 import TweetEmbed from "react-tweet-embed";
 import { useSelector, useDispatch } from "react-redux";
 
-import { Flex, Input, IconButton, Wrap, WrapItem } from "@chakra-ui/react";
+import {
+  Flex,
+  Input,
+  IconButton,
+  Wrap,
+  WrapItem,
+  Alert,
+  AlertIcon,
+  AlertDescription,
+  AlertTitle,
+  CloseButton,
+} from "@chakra-ui/react";
 import { SearchIcon } from "@chakra-ui/icons";
 import { fetchTweets } from "./finderSlice";
 
@@ -12,7 +23,7 @@ export function Finder() {
   const dispatch = useDispatch();
 
   // retrieve tweets and isLoading from the redux store 
-  const { tweets, isLoading } = useSelector((state) => state.finder);
+  const { tweets, isLoading, error } = useSelector((state) => state.finder);
 
   // retrieve numberOfResults from redux store 
   const numberOfResults = useSelector((state) => state.numberOfResults);
@@ -21,9 +32,22 @@ export function Finder() {
     if (searchValue) {
       // dispatch the thunk with state values
       setSearchValue("");
-      dispatch(fetchTweets(searchValue, numberOfResults));
+      dispatch(fetchTweets({ searchValue, numberOfResults }));
     }
   };
+
+  if (error) {
+    return (
+      <Alert status="error">
+        <AlertIcon />
+        <AlertTitle mr={2}>An Error occurred!</AlertTitle>
+        <AlertDescription>
+          We couldn't fetch tweets right now. Please try again later.
+        </AlertDescription>
+        <CloseButton position="absolute" right="8px" top="8px" />
+      </Alert>
+    );
+  }
 
   return (
     <>

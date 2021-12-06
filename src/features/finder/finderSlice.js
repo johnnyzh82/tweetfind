@@ -1,36 +1,35 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 
 import numberOfResultsSlice from '../numberOfResults/numberOfResultsSlice';
 import { findTweets } from "./findTweets";
 
 const initialState = { tweets: [], isLoading: false, error: numberOfResultsSlice };
 
-export const fetchTweets = (searchValue, numberOfResults) => async (dispatch) => {
-    // loading ...
-    dispatch(isLoadingTweets());
 
-    // perform actual data fetch 
-    const tweets = await findTweets(searchValue, numberOfResults);
+const FETCH_TWEETS = "FETCH_TWEETS";
 
-    // success 
-    dispatch(loadingTweetsSuccess(tweets));
-};
+export const fetchTweets = createAsyncThunk(FETCH_TWEETS, async (params, thunkAPI) => {
+    await findTweets(params.searchValue, params.numberOfResults);
+});
 
 const finderSlice = createSlice({
     name: 'finder',
     initialState,
-    reducers: {
+    extraReducers: {
         // note that the payload is deconstructed from the action object
-        loadingTweetsSuccess(state, { payload }) {
+        [fetchTweets.fulfilled]: (state, { payload }) => {
             state.tweets = payload;
             state.isLoading = false;
             state.error = null;
         },
-        isLoadingTweets(state) {
+        [fetchTweets.pending]: (state) => {
             state.isLoading = true;
+        },
+        [fetchTweets.rejected]: (state, { payload }) => {
+            state.isLoading = false;
+            state.error = "We couldn't fetch tweets right now. Please try again later.";
         },
     },
 });
 
-export const { isLoadingTweets, loadingTweetsSuccess } = finderSlice.actions;
 export default finderSlice.reducer;
